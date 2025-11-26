@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Aivan - AI Coder</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet" />
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;700;900&display=swap');
+      body {
+        font-family: 'Heebo', sans-serif;
+      }
+      /* Custom Scrollbar */
+      ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+      }
+      ::-webkit-scrollbar-track {
+        background: rgba(255, 255, 255, 0.1); 
+      }
+      ::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.3); 
+        border-radius: 4px;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: rgba(255, 255, 255, 0.5); 
+      }
+
+      /* Animated Gradient Background */
+      .animate-gradient {
+        background: linear-gradient(-45deg, #3b82f6, #a855f7, #ec4899, #eab308);
+        background-size: 400% 400%;
+        animation: gradientBG 15s ease infinite;
+      }
+
+      @keyframes gradientBG {
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+      }
+
+      /* Entrance Animations */
+      .fade-in-up {
+        animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        opacity: 0;
+        transform: translateY(20px);
+      }
+
+      @keyframes fadeInUp {
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      /* Accessibility Overrides */
+      body.a11y-grayscale { filter: grayscale(100%); }
+      body.a11y-high-contrast { filter: contrast(150%); }
+      body.a11y-negative-contrast { filter: invert(100%); background-color: black; }
+      body.a11y-light-bg { background: #f0f0f0 !important; color: #000 !important; }
+      body.a11y-light-bg * { background-color: #fff !important; color: #000 !important; border-color: #000 !important; }
+      body.a11y-highlight-links a, body.a11y-highlight-links button { text-decoration: underline !important; outline: 3px solid #ffff00 !important; }
+      body.a11y-readable-font { font-family: Arial, Helvetica, sans-serif !important; letter-spacing: 0.5px; }
+      body.a11y-big-cursor { cursor: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewport='0 0 100 100' style='fill:black;font-size:24px;'><text y='50%'>👆</text></svg>") 16 0, auto !important; }
+      
+      /* Stop Animations - Strong Override */
+      body.a11y-stop-animations *, 
+      body.a11y-stop-animations .animate-gradient { 
+        animation: none !important; 
+        transition: none !important; 
+        background-size: 100% 100% !important;
+        background-position: center !important;
+      }
+      
+      html.a11y-large-text { font-size: 125%; }
+      html.a11y-small-text { font-size: 85%; }
+
+    </style>
+  <script type="importmap">
+{
+  "imports": {
+    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.30.0",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
+    "react/": "https://aistudiocdn.com/react@^19.2.0/",
+    "react": "https://aistudiocdn.com/react@^19.2.0"
+  }
+}
+</script>
+</head>
+  <body>
+    <div id="root"></div>
+  </body>
+</html>
