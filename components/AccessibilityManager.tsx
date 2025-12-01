@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 
 interface AccessibilityManagerProps {
@@ -12,38 +13,42 @@ const AccessibilityManager: React.FC<AccessibilityManagerProps> = ({
   const [showMenu, setShowMenu] = useState(false);
   const [showStatement, setShowStatement] = useState(false);
   const [activeA11y, setActiveA11y] = useState<Set<string>>(new Set());
+  const [textSizePercent, setTextSizePercent] = useState(100);
 
-  // Restore state on mount (optional, but good for persistence across screens)
+  // Conflicting modes that should not be active together
+  const EXCLUSIVE_MODES = ['grayscale', 'high-contrast', 'negative-contrast', 'light-bg'];
+
+  // Restore state on mount
   useEffect(() => {
-    // Check existing classes on body to sync state
     const currentClasses = new Set<string>();
     document.body.classList.forEach(cls => {
       if (cls.startsWith('a11y-')) currentClasses.add(cls.replace('a11y-', ''));
     });
-    // check html for text size
-    if (document.documentElement.classList.contains('a11y-large-text')) currentClasses.add('large-text');
-    if (document.documentElement.classList.contains('a11y-small-text')) currentClasses.add('small-text');
-    
     setActiveA11y(currentClasses);
   }, []);
 
-  const toggleA11yOption = (option: string, type: 'body' | 'html' = 'body') => {
+  // Handle Text Size changes
+  useEffect(() => {
+    document.documentElement.style.fontSize = `${textSizePercent}%`;
+  }, [textSizePercent]);
+
+  const toggleA11yOption = (option: string) => {
     const newSet = new Set(activeA11y);
     const className = `a11y-${option}`;
-    const element = type === 'html' ? document.documentElement : document.body;
+    const element = document.body;
 
     if (newSet.has(option)) {
       newSet.delete(option);
       element.classList.remove(className);
     } else {
-      // Logic for mutually exclusive options
-      if (option === 'large-text') {
-        newSet.delete('small-text');
-        document.documentElement.classList.remove('a11y-small-text');
-      }
-      if (option === 'small-text') {
-        newSet.delete('large-text');
-        document.documentElement.classList.remove('a11y-large-text');
+      // If the new option is one of the exclusive visual modes, remove others first
+      if (EXCLUSIVE_MODES.includes(option)) {
+        EXCLUSIVE_MODES.forEach(mode => {
+          if (newSet.has(mode)) {
+            newSet.delete(mode);
+            element.classList.remove(`a11y-${mode}`);
+          }
+        });
       }
 
       newSet.add(option);
@@ -52,25 +57,43 @@ const AccessibilityManager: React.FC<AccessibilityManagerProps> = ({
     setActiveA11y(newSet);
   };
 
+  const handleManualSizeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      const val = parseInt(e.target.value);
+      if (!isNaN(val)) {
+          // Allow typing freely, clamp only on blur or submit logic if needed, 
+          // but for instant feedback let's clamp logic in useEffect or here.
+          // Better to limit visual updates
+          if (val > 500) setTextSizePercent(500);
+          else setTextSizePercent(val);
+      }
+  };
+
+  const changeTextSize = (amount: number) => {
+    setTextSizePercent(prev => {
+      const newValue = prev + amount;
+      if (newValue < 25) return 25;
+      if (newValue > 500) return 500;
+      return newValue;
+    });
+  };
+
   const resetA11y = () => {
     activeA11y.forEach(opt => {
       document.body.classList.remove(`a11y-${opt}`);
-      document.documentElement.classList.remove(`a11y-${opt}`);
     });
     setActiveA11y(new Set());
+    setTextSizePercent(100);
   };
 
   const a11yOptions = [
-    { id: 'large-text', label: 'הגדלת טקסט', icon: 'fa-plus', type: 'html' },
-    { id: 'small-text', label: 'הקטנת טקסט', icon: 'fa-minus', type: 'html' },
-    { id: 'grayscale', label: 'גווני אפור', icon: 'fa-adjust', type: 'body' },
-    { id: 'high-contrast', label: 'ניגודיות גבוהה', icon: 'fa-sun', type: 'body' },
-    { id: 'negative-contrast', label: 'ניגודיות הפוכה', icon: 'fa-moon', type: 'body' },
-    { id: 'light-bg', label: 'רקע בהיר', icon: 'fa-paint-roller', type: 'body' },
-    { id: 'highlight-links', label: 'הדגשת קישורים', icon: 'fa-link', type: 'body' },
-    { id: 'readable-font', label: 'פונט קריא', icon: 'fa-font', type: 'body' },
-    { id: 'big-cursor', label: 'סמן גדול', icon: 'fa-mouse-pointer', type: 'body' },
-    { id: 'stop-animations', label: 'עצור אנימציות', icon: 'fa-pause-circle', type: 'body' },
+    { id: 'grayscale', label: 'גווני אפור', icon: 'fa-adjust' },
+    { id: 'high-contrast', label: 'ניגודיות גבוהה', icon: 'fa-sun' },
+    { id: 'negative-contrast', label: 'ניגודיות הפוכה', icon: 'fa-moon' },
+    { id: 'light-bg', label: 'רקע בהיר', icon: 'fa-paint-roller' },
+    { id: 'highlight-links', label: 'הדגשת קישורים', icon: 'fa-link' },
+    { id: 'readable-font', label: 'פונט קריא', icon: 'fa-font' },
+    { id: 'big-cursor', label: 'סמן גדול', icon: 'fa-mouse-pointer' },
+    { id: 'stop-animations', label: 'עצור אנימציות', icon: 'fa-pause-circle' },
   ];
 
   return (
@@ -88,19 +111,51 @@ const AccessibilityManager: React.FC<AccessibilityManagerProps> = ({
           </button>
 
           {showMenu && (
-            <div className="absolute top-12 ltr:left-0 rtl:right-0 w-72 bg-white rounded-xl shadow-2xl p-4 border border-gray-200 fade-in-up text-gray-800 transform ltr:origin-top-left rtl:origin-top-right">
+            <div className="absolute top-12 ltr:left-0 rtl:right-0 w-80 bg-white rounded-xl shadow-2xl p-5 border border-gray-200 fade-in-up text-gray-800 transform ltr:origin-top-left rtl:origin-top-right">
               <div className="flex justify-between items-center mb-4 border-b pb-2">
                 <h3 className="font-bold text-lg">כלי נגישות</h3>
                 <button onClick={resetA11y} className="text-xs text-red-500 hover:bg-red-50 px-2 py-1 rounded">
                   <i className="fas fa-redo ml-1"></i> איפוס
                 </button>
               </div>
+
+              {/* Text Sizing Controls - UPDATED UI */}
+              <div className="mb-4 bg-gray-50 p-4 rounded-xl border border-gray-100 flex flex-col items-center">
+                <span className="text-sm font-semibold mb-3">גודל טקסט</span>
+                <div className="flex items-center gap-3 bg-white p-1 rounded-full border border-gray-200 shadow-sm">
+                  <button 
+                    onClick={() => changeTextSize(-5)} 
+                    className="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors text-gray-600"
+                    disabled={textSizePercent <= 25}
+                  >
+                    <i className="fas fa-minus text-xs"></i>
+                  </button>
+                  
+                  <div className="relative flex items-center">
+                      <input 
+                        type="number" 
+                        value={textSizePercent}
+                        onChange={handleManualSizeChange}
+                        className="w-12 text-center font-bold text-gray-800 outline-none bg-transparent appearance-none"
+                      />
+                      <span className="text-xs font-bold text-gray-400 absolute right-full">%</span>
+                  </div>
+
+                  <button 
+                    onClick={() => changeTextSize(5)} 
+                    className="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors text-gray-600"
+                    disabled={textSizePercent >= 500}
+                  >
+                    <i className="fas fa-plus text-xs"></i>
+                  </button>
+                </div>
+              </div>
               
               <div className="grid grid-cols-2 gap-2 max-h-80 overflow-y-auto">
                 {a11yOptions.map((opt) => (
                   <button
                     key={opt.id}
-                    onClick={() => toggleA11yOption(opt.id, opt.type as 'body' | 'html')}
+                    onClick={() => toggleA11yOption(opt.id)}
                     className={`flex flex-col items-center justify-center p-3 rounded-lg text-sm transition-all border ${
                       activeA11y.has(opt.id) 
                         ? 'bg-purple-600 text-white border-purple-600' 
@@ -138,10 +193,11 @@ const AccessibilityManager: React.FC<AccessibilityManagerProps> = ({
               <p>אתר זה נבנה בהתאם להוראות נגישות תכנים באינטרנט.</p>
               <ul className="list-disc list-inside space-y-1">
                 <li>האתר מותאם לניווט באמצעות מקלדת.</li>
-                <li>קיימת אפשרות לשינוי גודל טקסט וניגודיות צבעים.</li>
-                <li>כפתור עצור אנימציות מפסיק הבהובים ותנועה.</li>
+                <li>קיימת אפשרות לשינוי גודל טקסט בין 25% ל-500%.</li>
+                <li>קיימת תמיכה בניגודיות גבוהה והפסקת אנימציות.</li>
               </ul>
-              <p>אם נתקלתם בבעיה, אנא פנו אלינו.</p>
+              <p>אם נתקלתם בבעיה, אנא פנו אלינו:</p>
+              <a href="mailto:vaxtoponline@gmail.com" className="text-purple-600 font-bold block mt-2">vaxtoponline@gmail.com</a>
             </div>
             <div className="mt-6 text-center">
               <button onClick={() => setShowStatement(false)} className="bg-purple-600 text-white px-6 py-2 rounded-lg font-bold">סגור</button>
