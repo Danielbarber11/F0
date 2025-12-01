@@ -1,20 +1,32 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
+# F0
 
-# Run and deploy your AI Studio app
+Updated README: Added instructions for connecting Supabase and deploying to Vercel.
 
-This contains everything you need to run your app locally.
+## Setup local
+1. Copy .env.example to .env and set the values:
+   - VITE_SUPABASE_URL=https://your-project-ref.supabase.co
+   - VITE_SUPABASE_ANON_KEY=your-anon-key
 
-View your app in AI Studio: https://ai.studio/apps/drive/19Lx8xuYiPKo2JyRbxjDyjodQTtV-4lbe
+2. Install dependencies:
+   npm install
 
-## Run Locally
+3. Run locally:
+   npm run dev
 
-**Prerequisites:**  Node.js
+## Supabase setup
+1. Create a project at https://app.supabase.com.
+2. In the Project Settings -> API copy the Project URL and anon key.
+3. In the SQL editor, run the SQL in `db/init.sql` to create tables.
+4. Create a Storage bucket (e.g. `uploads`) for file uploads.
+5. Enable RLS for tables and add policies so users can only access their own rows.
 
+## Deployment (Vercel recommended)
+1. Connect your GitHub account and import this repo into Vercel.
+2. In Project Settings -> Environment Variables, add:
+   - VITE_SUPABASE_URL
+   - VITE_SUPABASE_ANON_KEY
+3. Build Command: `npm run build`
+4. Output Directory: `dist`
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+## Security note
+Do NOT commit real keys into the repo. If you shared any API keys publicly, please rotate/regenerate them immediately.
