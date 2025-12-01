@@ -24,8 +24,9 @@ jobs:
         run: npm ci
 
       - name: Build
+        # Use relative base for assets so built site works when served from project pages
         env:
-          BASE_URL: '/F0/'
+          BASE_URL: './'
         run: npm run build
 
       - name: Deploy to gh-pages
