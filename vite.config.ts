@@ -5,7 +5,9 @@ import react from '@vitejs/plugin-react';
 export default defineConfig(({ mode }) => {
     const env = loadEnv(mode, '.', '');
     return {
-      base: env.BASE_URL || '/',
+      // Use a relative base by default so built assets work when served from any path
+      // (GitHub Pages project sites often serve under /repo-name/ which breaks absolute '/assets' paths).
+      base: env.BASE_URL || './',
       server: {
         port: 3000,
         host: '0.0.0.0',
