@@ -1,7 +1,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { User, SettingsTab, Role } from '../types';
-import { ai } from '../services/geminiService';
+import { ai, isGeminiConfigured } from '../services/geminiService';
 
 interface SettingsModalProps {
   user: User | null;
@@ -145,6 +145,10 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
     setIsHelpLoading(true);
 
     try {
+      if (!isGeminiConfigured()) {
+        setHelpMessages(prev => [...prev, { role: 'model', text: 'Gemini לא מוגדר — הוסף GEMINI_API_KEY לקובץ .env ובצע build מחדש.' }]);
+        return;
+      }
       const response = await ai.models.generateContent({
         model: 'gemini-2.5-flash',
         contents: [

@@ -4,6 +4,15 @@ import { ChatMessage, Role, ChatMode } from "../types";
 
 export const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
+// Small helper to detect whether we have a real API key available at runtime.
+export const isGeminiConfigured = (): boolean => {
+  const key = process.env.API_KEY as string | undefined;
+  if (!key) return false;
+  // Common placeholder checks
+  if (key.includes('YOUR') || key.includes('PLACEHOLDER') || key.trim().length < 10) return false;
+  return true;
+};
+
 const BASE_SYSTEM_INSTRUCTION = `
 אתה "אייבן" (Aivan), עוזר תכנות מומחה ובונה אתרים.
 היה אדיב, מקצועי ודבר בעברית.
@@ -153,6 +162,10 @@ export const sendMessageToGemini = async (
   let retryCount = 0;
   const maxRetries = 3;
 
+  if (!isGeminiConfigured()) {
+    throw new Error('Gemini API key is not configured. Please set GEMINI_API_KEY in your environment and rebuild the app.');
+  }
+
   while (true) {
     try {
       const { contents, systemInstruction } = await buildRequestParams(prompt, history, files, chatMode, currentCode, isPremium);
@@ -198,6 +211,10 @@ export async function* sendMessageToGeminiStream(
 ) {
   let retryCount = 0;
   const maxRetries = 3;
+
+  if (!isGeminiConfigured()) {
+    throw new Error('Gemini API key is not configured. Please set GEMINI_API_KEY in your environment and rebuild the app.');
+  }
 
   while (true) {
     try {

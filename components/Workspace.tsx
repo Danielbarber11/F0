@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { ChatMessage, Role, ChatMode, User, AdRequest } from '../types';
-import { sendMessageToGemini, sendMessageToGeminiStream } from '../services/geminiService';
+import { sendMessageToGemini, sendMessageToGeminiStream, isGeminiConfigured } from '../services/geminiService';
 import AccessibilityManager from './AccessibilityManager';
 
 interface WorkspaceProps {
@@ -157,6 +157,10 @@ const Workspace: React.FC<WorkspaceProps> = ({
   };
 
   const triggerRequest = async (promptText: string) => {
+        if (!isGeminiConfigured()) {
+                alert('המערכת של Gemini אינה מוגדרת. יש להוסיף את GEMINI_API_KEY בקובץ .env ולבצע build/הרצה מחדש.');
+                return;
+        }
     if (isLoading) return;
     
     // Check Daily Limit
@@ -300,7 +304,9 @@ const Workspace: React.FC<WorkspaceProps> = ({
       return originalCode.includes('</body>') ? originalCode.replace('</body>', `${footerHTML}</body>`) : originalCode + footerHTML;
   };
 
-  return (
+    const geminiReady = isGeminiConfigured();
+
+    return (
     <div className="flex h-screen w-full bg-white overflow-hidden fade-in-up text-gray-900 font-sans relative">
       
       <div className="flex-1 flex flex-col min-w-0 h-full relative">
@@ -316,7 +322,14 @@ const Workspace: React.FC<WorkspaceProps> = ({
              <div className="w-20"></div>
          </header>
 
-         <div className="flex-1 relative bg-gray-50 overflow-hidden">
+                 <div className="flex-1 relative bg-gray-50 overflow-hidden">
+                        {!geminiReady && (
+                            <div className="w-full bg-red-50 border-b border-red-200 text-red-700 px-4 py-2 text-sm flex items-center justify-center">
+                                <div>
+                                    Gemini לא פעיל — אנא הוסף את GEMINI_API_KEY ב־`.env` (או ב־Secrets בסביבת הפריסה) ו־rebuild כדי לאפשר מצב סוכן.
+                                </div>
+                            </div>
+                        )}
             <div className={`absolute inset-0 w-full h-full ${activeView === 'preview' ? 'block' : 'hidden'}`}>
                 {(isLoading || (!code && !isPremium)) ? (
                     <div className={`absolute inset-0 z-50 flex items-center justify-center ${isPremium && code ? 'bg-transparent pointer-events-none' : 'bg-gray-900/40 backdrop-blur-sm'}`}>
